@@ -4,6 +4,12 @@
 
 #include "verilated.h"
 
+extern const VlWide<9>/*287:0*/ VTop__ConstPool__CONST_h17fce101_0 = {{
+    0x2e686578, 0x6772616d, 0x2f70726f, 0x75737276,
+    0x75636c65, 0x616e2f6e, 0x68617373, 0x6f6d652f,
+    0x00002f68
+}};
+
 extern const VlWide<16>/*511:0*/ VTop__ConstPool__CONST_h93e1b771_0 = {{
     0x00000000, 0x00000000, 0x00000000, 0x00000000,
     0x00000000, 0x00000000, 0x00000000, 0x00000000,

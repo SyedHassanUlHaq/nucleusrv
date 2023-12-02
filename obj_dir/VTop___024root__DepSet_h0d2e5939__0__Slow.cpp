@@ -6,20 +6,17 @@
 
 #include "VTop___024root.h"
 
+extern const VlWide<9>/*287:0*/ VTop__ConstPool__CONST_h17fce101_0;
+
 VL_ATTR_COLD void VTop___024root___initial__TOP__0(VTop___024root* vlSelf) {
     if (false && vlSelf) {}  // Prevent unused
     VTop__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     VL_DEBUG_IF(VL_DBG_MSGF("+    VTop___024root___initial__TOP__0\n"); );
-    // Init
-    VlWide<3>/*95:0*/ __Vtemp_h3da635ba__0;
     // Body
     VL_READMEM_N(true, 32, 8192, 0, std::string{"data.hex"}
                  ,  &(vlSelf->Top__DOT__dmem__DOT__sram__DOT__memory__DOT__mem)
                  , 0, ~0ULL);
-    __Vtemp_h3da635ba__0[0U] = 0x2e686578U;
-    __Vtemp_h3da635ba__0[1U] = 0x6772616dU;
-    __Vtemp_h3da635ba__0[2U] = 0x70726fU;
-    VL_READMEM_N(true, 32, 8192, 0, VL_CVT_PACK_STR_NW(3, __Vtemp_h3da635ba__0)
+    VL_READMEM_N(true, 32, 8192, 0, VL_CVT_PACK_STR_NW(9, VTop__ConstPool__CONST_h17fce101_0)
                  ,  &(vlSelf->Top__DOT__imem__DOT__sram__DOT__memory__DOT__mem)
                  , 0, ~0ULL);
 }
