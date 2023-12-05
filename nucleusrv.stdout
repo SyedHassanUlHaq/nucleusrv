@@ -1,0 +1,29 @@
+[info] welcome to sbt 1.5.5 (Ubuntu Java 11.0.21)
+[info] loading settings for project nucleusrv-build-build-build from metals.sbt ...
+[info] loading project definition from /home/hassan/nucleusrv/project/project/project
+[info] loading settings for project nucleusrv-build-build from metals.sbt ...
+[info] loading project definition from /home/hassan/nucleusrv/project/project
+[success] Generated .bloop/nucleusrv-build-build.json
+[success] Total time: 4 s, completed Dec 4, 2023, 7:38:42 PM
+[info] loading settings for project nucleusrv-build from metals.sbt,plugins.sbt ...
+[info] loading project definition from /home/hassan/nucleusrv/project
+[success] Total time: 1 s, completed Dec 4, 2023, 7:38:44 PM
+[info] loading settings for project root from build.sbt ...
+[info] set current project to nucleusrv (in build file:/home/hassan/nucleusrv/)
+[info] TopTest:
+ClkCycle:          5, pc_rdata: 00000000, pc_wdata: 00000004, insn: 66666137, mode: 3, rs1_addr: 12, rs1_rdata: 00000000, rs2_addr:  6, rs2_rdata: 00000000, rd_addr:  2, rd_wdata: 66666000, mem_addr: 66666000, mem_rdata: 00000000, mem_wdata: 00000000
+ClkCycle:          6, pc_rdata: 00000004, pc_wdata: 00000008, insn: 66610113, mode: 3, rs1_addr:  2, rs1_rdata: 00000000, rs2_addr:  6, rs2_rdata: 00000000, rd_addr:  2, rd_wdata: 66666666, mem_addr: 66666666, mem_rdata: 00000000, mem_wdata: 00000000
+ClkCycle:          7, pc_rdata: 00000008, pc_wdata: 0000000c, insn: 800000b7, mode: 3, rs1_addr:  0, rs1_rdata: 00000000, rs2_addr:  0, rs2_rdata: 00000000, rd_addr:  1, rd_wdata: 80000000, mem_addr: 80000000, mem_rdata: 00000000, mem_wdata: 00000000
+ClkCycle:          8, pc_rdata: 0000000c, pc_wdata: 00000010, insn: fff08093, mode: 3, rs1_addr:  1, rs1_rdata: 00000000, rs2_addr: 31, rs2_rdata: 00000000, rd_addr:  1, rd_wdata: 7fffffff, mem_addr: 7fffffff, mem_rdata: 00000000, mem_wdata: 00000000
+ClkCycle:          9, pc_rdata: 00000010, pc_wdata: 00000014, insn: 001103b3, mode: 3, rs1_addr:  2, rs1_rdata: 66666666, rs2_addr:  1, rs2_rdata: 00000000, rd_addr:  7, rd_wdata: e6666665, mem_addr: e6666665, mem_rdata: 00000000, mem_wdata: 7fffffff
+ClkCycle:         10, pc_rdata: 00000014, pc_wdata: 00000018, insn: 0071ae23, mode: 3, rs1_addr:  3, rs1_rdata: 00000000, rs2_addr:  7, rs2_rdata: 00000000, rd_addr: 28, rd_wdata: 0000001c, mem_addr: 0000001c, mem_rdata: 00000000, mem_wdata: e6666665
+ClkCycle:         11, pc_rdata: 00000018, pc_wdata: 0000001a, insn: fe410113, mode: 3, rs1_addr:  2, rs1_rdata: 66666666, rs2_addr:  4, rs2_rdata: 00000000, rd_addr:  2, rd_wdata: 6666664a, mem_addr: 6666664a, mem_rdata: 00000000, mem_wdata: 00000000
+ClkCycle:         12, pc_rdata: 0000001a, pc_wdata: 0000001a, insn: 00000013, mode: 3, rs1_addr:  0, rs1_rdata: 00000000, rs2_addr:  0, rs2_rdata: 00000000, rd_addr:  0, rd_wdata: 00000000, mem_addr: 00000000, mem_rdata: 00000000, mem_wdata: 00000000
+ClkCycle:         13, pc_rdata: 0000001a, pc_wdata: 0000001c, insn: fe410113, mode: 3, rs1_addr:  2, rs1_rdata: 66666666, rs2_addr:  4, rs2_rdata: 00000000, rd_addr:  2, rd_wdata: 6666662e, mem_addr: 6666662e, mem_rdata: 00000000, mem_wdata: 00000000
+[info] - Top Test
+[info] Run completed in 17 seconds, 232 milliseconds.
+[info] Total number of tests run: 1
+[info] Suites: completed 1, aborted 0
+[info] Tests: succeeded 1, failed 0, canceled 0, ignored 0, pending 0
+[info] All tests passed.
+[success] Total time: 19 s, completed Dec 4, 2023, 7:39:03 PM

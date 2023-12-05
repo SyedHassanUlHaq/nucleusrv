@@ -174,15 +174,15 @@ class nucleusrv(pluginTemplate):
         
             if self.target_run:
             # set up the simulation command. Template is for spike. Please change.
-                simcmd = f"python3 /home/shassan/nucleusrv/tools/trace/scripts/logToSignature.py --log {testentry['work_dir']}/nucleusrv.log --disass {testentry['work_dir']}/nucleusrv.disass --signature {testentry['work_dir']}/DUT-nucleusrv.signature"
-                A = f"python3 /home/shassan/nucleusrv/tools/trace/scripts/assemblyParser.py --asm {testentry['work_dir']}/nucleusrv.disass --hex {testentry['work_dir']}/nucleusrv.hex"
-                AA = f"python3 /home/shassan/nucleusrv/tools/trace/scripts/hex_cleaner.py --hex {testentry['work_dir']}/nucleusrv.hex"
+                simcmd = f"python3 /home/hassan/nucleusrv/tools/trace/scripts/logToSignature.py --log {testentry['work_dir']}/nucleusrv.log --disass {testentry['work_dir']}/nucleusrv.disass --signature {testentry['work_dir']}/DUT-nucleusrv.signature"
+                A = f"python3 /home/hassan/nucleusrv/tools/trace/scripts/assemblyParser.py --asm {testentry['work_dir']}/nucleusrv.disass --hex {testentry['work_dir']}/nucleusrv.hex"
+                AA = f"python3 /home/hassan/nucleusrv/tools/trace/scripts/hex_cleaner.py --hex {testentry['work_dir']}/nucleusrv.hex"
                 B = f"cd "
                 C = "cd nucleusrv"
                 E = 'make sim IMEM={0}/nucleusrv.hex'.format(testentry['work_dir'])
                 F = f"cd ./tools/trace"
                 G = f"echo Generating log..."
-                H = "python3 /home/shassan/nucleusrv/tools/trace/scripts/sbtToLog.py --asm {}/nucleusrv.disass --sbt_dump /home/shassan/nucleusrv/trace.log --log {}/nucleusrv.log".format(testentry['work_dir'], testentry['work_dir'], testentry['work_dir'])
+                H = "python3 /home/hassan/nucleusrv/tools/trace/scripts/sbtToLog.py --asm {}/nucleusrv.disass --sbt_dump /home/hassan/nucleusrv/trace.log --log {}/nucleusrv.log".format(testentry['work_dir'], testentry['work_dir'], testentry['work_dir'])
                 I = f"rm {testentry['work_dir']}/nucleusrv.hex && rm {testentry['work_dir']}/my.elf"
                 # simcmd = f"{self.dut_exe} {test}test.S"
             else:
