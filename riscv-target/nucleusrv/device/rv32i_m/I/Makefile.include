@@ -1,6 +1,6 @@
 #sbt "testOnly nucleusrv.components.TopTest -- -DmemFile=tools/out/program.hex -DwriteVcd=1 -DsignatureFile=test.sig"
 
-TARGET_SIM ?= VTop
+TARGET_SIM ?= /home/hassan/nucleusrv/test_run_dir/Top_Test/verilated/VTop
 ifeq ($(shell command -v $(TARGET_SIM) 2> /dev/null),)
     $(error Target simulator executable '$(TARGET_SIM)` not found)
 endif
