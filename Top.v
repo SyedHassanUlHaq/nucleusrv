@@ -2,6 +2,8 @@
 /* verilator lint_off UNUSED */
 /* verilator lint_off BLKSEQ */
 /* verilator lint_off DECLFILENAME */
+/* verilator lint_off EOFNEWLINE */
+/* verilator lint_off WIDTH */
 module InstructionFetch(
   input         reset,
   input  [31:0] io_address,
@@ -1142,9 +1144,7 @@ module InstructionDecode(
   output        io_stall,
   output [31:0] io_csr_o_data,
   output        io_is_csr,
-  output [31:0] io_fscr_o_data,
-  output [4:0]  io_rs_addr_0,
-  output [4:0]  io_rs_addr_1
+  output [31:0] io_fscr_o_data
 );
   wire  csr_clock; // @[InstructionDecode.scala 74:19]
   wire  csr_reset; // @[InstructionDecode.scala 74:19]
@@ -1333,8 +1333,6 @@ module InstructionDecode(
   assign io_csr_o_data = csr_io_o_data; // @[InstructionDecode.scala 83:31]
   assign io_is_csr = io_id_instruction[6:0] == 7'h73; // @[InstructionDecode.scala 82:58]
   assign io_fscr_o_data = csr_io_fcsr_o_data; // @[InstructionDecode.scala 84:31]
-  assign io_rs_addr_0 = io_id_instruction[19:15]; // @[InstructionDecode.scala 138:38]
-  assign io_rs_addr_1 = io_id_instruction[24:20]; // @[InstructionDecode.scala 139:38]
   assign csr_clock = clock;
   assign csr_reset = reset;
   assign csr_io_i_data = 3'h6 == csrController_io_forwardRS1 ? io_csr_Wb_data : _csr_io_i_data_T_9; // @[Mux.scala 81:58]
@@ -1959,7 +1957,6 @@ module MemoryFetch(
   wire [31:0] _GEN_52 = funct3 == 3'h5 ? _GEN_47 : _GEN_50; // @[MemoryFetch.scala 147:38]
   wire [31:0] _GEN_53 = funct3 == 3'h4 ? _GEN_44 : _GEN_52; // @[MemoryFetch.scala 128:38]
   wire [31:0] _GEN_54 = funct3 == 3'h0 ? _GEN_40 : _GEN_53; // @[MemoryFetch.scala 109:38]
-  wire  _T_31 = io_writeEnable & io_aluResultIn[31:28] == 4'h8; // @[MemoryFetch.scala 188:23]
   assign io_readData = funct3 == 3'h2 ? rdata : _GEN_54; // @[MemoryFetch.scala 105:31 107:19]
   assign io_dccmReq_valid = io_writeEnable | io_readEnable; // @[MemoryFetch.scala 97:42]
   assign io_dccmReq_bits_addrRequest = {{2'd0}, _io_dccmReq_bits_addrRequest_T[31:2]}; // @[MemoryFetch.scala 95:31]
@@ -1981,7 +1978,7 @@ module MemoryFetch(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_T_31 & ~reset) begin
+        if (io_writeEnable & ~reset) begin
           $fwrite(32'h80000002,"%x\n",io_writeData); // @[MemoryFetch.scala 189:11]
         end
     `ifdef PRINTF_COND
@@ -2043,18 +2040,15 @@ module PC(
   input  [31:0] io_in,
   input         io_halt,
   output [31:0] io_out,
-  output [31:0] io_pc4,
-  output [31:0] io_pc2
+  output [31:0] io_pc4
 );
 `ifdef RANDOMIZE_REG_INIT
   reg [31:0] _RAND_0;
 `endif // RANDOMIZE_REG_INIT
   reg [31:0] pc_reg; // @[PC.scala 13:23]
   wire [31:0] _io_pc4_T_2 = $signed(pc_reg) + 32'sh4; // @[PC.scala 16:41]
-  wire [31:0] _io_pc2_T_2 = $signed(pc_reg) + 32'sh2; // @[PC.scala 17:41]
   assign io_out = pc_reg; // @[PC.scala 15:10]
   assign io_pc4 = io_halt ? $signed(pc_reg) : $signed(_io_pc4_T_2); // @[PC.scala 16:16]
-  assign io_pc2 = io_halt ? $signed(pc_reg) : $signed(_io_pc2_T_2); // @[PC.scala 17:16]
   always @(posedge clock) begin
     if (reset) begin // @[PC.scala 13:23]
       pc_reg <= -32'sh4; // @[PC.scala 13:23]
@@ -2108,218 +2102,6 @@ end // initial
 `endif
 `endif // SYNTHESIS
 endmodule
-module Realigner(
-  input         clock,
-  input         reset,
-  input  [31:0] io_ral_address_i,
-  input  [31:0] io_ral_instruction_i,
-  input         io_ral_jmp,
-  output [31:0] io_ral_address_o,
-  output [31:0] io_ral_instruction_o,
-  output        io_ral_halt_o
-);
-`ifdef RANDOMIZE_REG_INIT
-  reg [31:0] _RAND_0;
-  reg [31:0] _RAND_1;
-`endif // RANDOMIZE_REG_INIT
-  wire  addri = io_ral_address_i[1]; // @[Realigner.scala 36:31]
-  reg [15:0] lhw_reg; // @[Realigner.scala 49:24]
-  wire [31:0] conc_instr = {io_ral_instruction_i[15:0],lhw_reg}; // @[Cat.scala 33:92]
-  wire [31:0] _io_ral_address_o_T_1 = io_ral_address_i + 32'h4; // @[Realigner.scala 56:53]
-  reg [1:0] stateReg; // @[Realigner.scala 68:25]
-  wire  _pc4_sel_T = stateReg == 2'h1; // @[Realigner.scala 101:30]
-  wire  pc4_sel = stateReg == 2'h1 & addri & ~io_ral_jmp; // @[Realigner.scala 101:50]
-  wire  conc_sel = stateReg == 2'h2; // @[Realigner.scala 103:30]
-  wire [31:0] _io_ral_instruction_o_T = conc_sel ? conc_instr : io_ral_instruction_i; // @[Realigner.scala 59:69]
-  wire [1:0] _GEN_0 = addri ? 2'h1 : 2'h0; // @[Realigner.scala 73:20 74:18 76:18]
-  wire [1:0] _GEN_1 = io_ral_jmp ? 2'h1 : 2'h2; // @[Realigner.scala 81:27 82:20 84:20]
-  assign io_ral_address_o = pc4_sel ? _io_ral_address_o_T_1 : io_ral_address_i; // @[Realigner.scala 56:26]
-  assign io_ral_instruction_o = _pc4_sel_T ? 32'h13 : _io_ral_instruction_o_T; // @[Realigner.scala 59:30]
-  assign io_ral_halt_o = stateReg == 2'h1; // @[Realigner.scala 100:30]
-  always @(posedge clock) begin
-    if (reset) begin // @[Realigner.scala 49:24]
-      lhw_reg <= 16'h0; // @[Realigner.scala 49:24]
-    end else begin
-      lhw_reg <= io_ral_instruction_i[31:16]; // @[Realigner.scala 51:11]
-    end
-    if (reset) begin // @[Realigner.scala 68:25]
-      stateReg <= 2'h0; // @[Realigner.scala 68:25]
-    end else if (2'h0 == stateReg) begin // @[Realigner.scala 71:19]
-      stateReg <= _GEN_0;
-    end else if (2'h1 == stateReg) begin // @[Realigner.scala 71:19]
-      if (addri) begin // @[Realigner.scala 80:18]
-        stateReg <= _GEN_1;
-      end else begin
-        stateReg <= 2'h0; // @[Realigner.scala 87:18]
-      end
-    end else if (2'h2 == stateReg) begin // @[Realigner.scala 71:19]
-      stateReg <= _GEN_0;
-    end
-  end
-// Register and memory initialization
-`ifdef RANDOMIZE_GARBAGE_ASSIGN
-`define RANDOMIZE
-`endif
-`ifdef RANDOMIZE_INVALID_ASSIGN
-`define RANDOMIZE
-`endif
-`ifdef RANDOMIZE_REG_INIT
-`define RANDOMIZE
-`endif
-`ifdef RANDOMIZE_MEM_INIT
-`define RANDOMIZE
-`endif
-`ifndef RANDOM
-`define RANDOM $random
-`endif
-`ifdef RANDOMIZE_MEM_INIT
-  integer initvar;
-`endif
-`ifndef SYNTHESIS
-`ifdef FIRRTL_BEFORE_INITIAL
-`FIRRTL_BEFORE_INITIAL
-`endif
-initial begin
-  `ifdef RANDOMIZE
-    `ifdef INIT_RANDOM
-      `INIT_RANDOM
-    `endif
-    `ifndef VERILATOR
-      `ifdef RANDOMIZE_DELAY
-        #`RANDOMIZE_DELAY begin end
-      `else
-        #0.002 begin end
-      `endif
-    `endif
-`ifdef RANDOMIZE_REG_INIT
-  _RAND_0 = {1{`RANDOM}};
-  lhw_reg = _RAND_0[15:0];
-  _RAND_1 = {1{`RANDOM}};
-  stateReg = _RAND_1[1:0];
-`endif // RANDOMIZE_REG_INIT
-  `endif // RANDOMIZE
-end // initial
-`ifdef FIRRTL_AFTER_INITIAL
-`FIRRTL_AFTER_INITIAL
-`endif
-`endif // SYNTHESIS
-endmodule
-module CompressedDecoder(
-  input  [31:0] io_instruction_i,
-  output        io_is_comp,
-  output [31:0] io_instruction_o
-);
-  wire  _T_3 = 2'h0 == io_instruction_i[15:14]; // @[CompressedDecoder.scala 42:41]
-  wire [31:0] _io_instruction_o_T_5 = {2'h0,io_instruction_i[10:7],io_instruction_i[12:11],io_instruction_i[5],
-    io_instruction_i[6],2'h0,10'h41,io_instruction_i[4:2],7'h13}; // @[Cat.scala 33:92]
-  wire  _T_4 = 2'h1 == io_instruction_i[15:14]; // @[CompressedDecoder.scala 42:41]
-  wire [31:0] _io_instruction_o_T_12 = {5'h0,io_instruction_i[5],io_instruction_i[12:10],io_instruction_i[6],4'h1,
-    io_instruction_i[9:7],3'h2,2'h1,io_instruction_i[4:2],7'h3}; // @[Cat.scala 33:92]
-  wire  _T_5 = 2'h3 == io_instruction_i[15:14]; // @[CompressedDecoder.scala 42:41]
-  wire [17:0] io_instruction_o_lo_2 = {io_instruction_i[9:7],3'h2,io_instruction_i[11:10],io_instruction_i[6],2'h0,7'h23
-    }; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_20 = {5'h0,io_instruction_i[5],io_instruction_i[12],2'h1,io_instruction_i[4:2],2'h1,
-    io_instruction_o_lo_2}; // @[Cat.scala 33:92]
-  wire  _T_6 = 2'h2 == io_instruction_i[15:14]; // @[CompressedDecoder.scala 42:41]
-  wire [31:0] _GEN_3 = 2'h3 == io_instruction_i[15:14] ? _io_instruction_o_T_20 : io_instruction_i; // @[CompressedDecoder.scala 42:41 61:28]
-  wire  _GEN_4 = 2'h1 == io_instruction_i[15:14] | 2'h3 == io_instruction_i[15:14]; // @[CompressedDecoder.scala 42:41 53:22]
-  wire [31:0] _GEN_5 = 2'h1 == io_instruction_i[15:14] ? _io_instruction_o_T_12 : _GEN_3; // @[CompressedDecoder.scala 42:41 54:28]
-  wire  _GEN_6 = 2'h0 == io_instruction_i[15:14] | _GEN_4; // @[CompressedDecoder.scala 42:41 46:22]
-  wire [31:0] _GEN_7 = 2'h0 == io_instruction_i[15:14] ? _io_instruction_o_T_5 : _GEN_5; // @[CompressedDecoder.scala 42:41 47:28]
-  wire [5:0] _io_instruction_o_T_23 = io_instruction_i[12] ? 6'h3f : 6'h0; // @[Bitwise.scala 77:12]
-  wire [31:0] _io_instruction_o_T_28 = {_io_instruction_o_T_23,io_instruction_i[12],io_instruction_i[6:2],
-    io_instruction_i[11:7],3'h0,io_instruction_i[11:7],7'h13}; // @[Cat.scala 33:92]
-  wire [8:0] _io_instruction_o_T_39 = io_instruction_i[12] ? 9'h1ff : 9'h0; // @[Bitwise.scala 77:12]
-  wire  _io_instruction_o_T_41 = ~io_instruction_i[15]; // @[CompressedDecoder.scala 95:82]
-  wire [24:0] io_instruction_o_lo_4 = {io_instruction_i[11],io_instruction_i[5:3],_io_instruction_o_T_39,4'h0,
-    _io_instruction_o_T_41,7'h6f}; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_42 = {io_instruction_i[12],io_instruction_i[8],io_instruction_i[10:9],io_instruction_i
-    [6],io_instruction_i[7],io_instruction_i[2],io_instruction_o_lo_4}; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_63 = {_io_instruction_o_T_23,io_instruction_i[12],io_instruction_i[6:2],5'h0,3'h0,
-    io_instruction_i[11:7],7'h13}; // @[Cat.scala 33:92]
-  wire [14:0] _io_instruction_o_T_66 = io_instruction_i[12] ? 15'h7fff : 15'h0; // @[Bitwise.scala 77:12]
-  wire [31:0] _io_instruction_o_T_69 = {_io_instruction_o_T_66,io_instruction_i[6:2],io_instruction_i[11:7],7'h37}; // @[Cat.scala 33:92]
-  wire [2:0] _io_instruction_o_T_72 = io_instruction_i[12] ? 3'h7 : 3'h0; // @[Bitwise.scala 77:12]
-  wire [31:0] _io_instruction_o_T_77 = {_io_instruction_o_T_72,io_instruction_i[4:3],io_instruction_i[5],
-    io_instruction_i[2],io_instruction_i[6],24'h10113}; // @[Cat.scala 33:92]
-  wire [31:0] _GEN_8 = io_instruction_i[11:7] == 5'h2 ? _io_instruction_o_T_77 : _io_instruction_o_T_69; // @[CompressedDecoder.scala 118:28 120:62 122:31]
-  wire [31:0] _io_instruction_o_T_82 = {1'h0,io_instruction_i[10],5'h0,io_instruction_i[6:2],2'h1,io_instruction_i[9:7],3'h5
-    ,2'h1,io_instruction_i[9:7],7'h13}; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_95 = {_io_instruction_o_T_23,io_instruction_i[12],io_instruction_i[6:2],2'h1,
-    io_instruction_i[9:7],5'h1d,io_instruction_i[9:7],7'h13}; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_99 = {9'h81,io_instruction_i[4:2],2'h1,io_instruction_i[9:7],3'h0,2'h1,
-    io_instruction_i[9:7],7'h33}; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_104 = {9'h1,io_instruction_i[4:2],2'h1,io_instruction_i[9:7],5'h11,io_instruction_i[9:
-    7],7'h33}; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_109 = {9'h1,io_instruction_i[4:2],2'h1,io_instruction_i[9:7],5'h19,io_instruction_i[9:
-    7],7'h33}; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_114 = {9'h1,io_instruction_i[4:2],2'h1,io_instruction_i[9:7],5'h1d,io_instruction_i[9:
-    7],7'h33}; // @[Cat.scala 33:92]
-  wire [31:0] _GEN_10 = 2'h3 == io_instruction_i[6:5] ? _io_instruction_o_T_114 : io_instruction_i; // @[CompressedDecoder.scala 154:46 180:36 35:20]
-  wire  _GEN_11 = 2'h2 == io_instruction_i[6:5] | 2'h3 == io_instruction_i[6:5]; // @[CompressedDecoder.scala 154:46 172:30]
-  wire [31:0] _GEN_12 = 2'h2 == io_instruction_i[6:5] ? _io_instruction_o_T_109 : _GEN_10; // @[CompressedDecoder.scala 154:46 173:36]
-  wire  _GEN_13 = 2'h1 == io_instruction_i[6:5] | _GEN_11; // @[CompressedDecoder.scala 154:46 165:30]
-  wire [31:0] _GEN_14 = 2'h1 == io_instruction_i[6:5] ? _io_instruction_o_T_104 : _GEN_12; // @[CompressedDecoder.scala 154:46 166:36]
-  wire  _GEN_15 = 2'h0 == io_instruction_i[6:5] | _GEN_13; // @[CompressedDecoder.scala 154:46 158:30]
-  wire [31:0] _GEN_16 = 2'h0 == io_instruction_i[6:5] ? _io_instruction_o_T_99 : _GEN_14; // @[CompressedDecoder.scala 154:46 159:36]
-  wire  _GEN_17 = 2'h3 == io_instruction_i[11:10] & _GEN_15; // @[CompressedDecoder.scala 129:44 34:14]
-  wire [31:0] _GEN_18 = 2'h3 == io_instruction_i[11:10] ? _GEN_16 : io_instruction_i; // @[CompressedDecoder.scala 129:44 35:20]
-  wire  _GEN_19 = 2'h2 == io_instruction_i[11:10] | _GEN_17; // @[CompressedDecoder.scala 129:44 147:26]
-  wire [31:0] _GEN_20 = 2'h2 == io_instruction_i[11:10] ? _io_instruction_o_T_95 : _GEN_18; // @[CompressedDecoder.scala 129:44 148:32]
-  wire  _GEN_21 = 2'h1 == io_instruction_i[11:10] | _GEN_19; // @[CompressedDecoder.scala 129:44 140:26]
-  wire [31:0] _GEN_22 = 2'h1 == io_instruction_i[11:10] ? _io_instruction_o_T_82 : _GEN_20; // @[CompressedDecoder.scala 129:44 141:32]
-  wire  _GEN_23 = 2'h0 == io_instruction_i[11:10] | _GEN_21; // @[CompressedDecoder.scala 129:44 133:26]
-  wire [31:0] _GEN_24 = 2'h0 == io_instruction_i[11:10] ? _io_instruction_o_T_82 : _GEN_22; // @[CompressedDecoder.scala 129:44 134:32]
-  wire [3:0] _io_instruction_o_T_117 = io_instruction_i[12] ? 4'hf : 4'h0; // @[Bitwise.scala 77:12]
-  wire [14:0] io_instruction_o_lo_16 = {2'h0,io_instruction_i[13],io_instruction_i[11:10],io_instruction_i[4:3],
-    io_instruction_i[12],7'h63}; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_126 = {_io_instruction_o_T_117,io_instruction_i[6:5],io_instruction_i[2],7'h1,
-    io_instruction_i[9:7],io_instruction_o_lo_16}; // @[Cat.scala 33:92]
-  wire [31:0] _GEN_26 = 3'h7 == io_instruction_i[15:13] ? _io_instruction_o_T_126 : io_instruction_i; // @[CompressedDecoder.scala 199:28 35:20 80:41]
-  wire  _GEN_27 = 3'h6 == io_instruction_i[15:13] | 3'h7 == io_instruction_i[15:13]; // @[CompressedDecoder.scala 190:22 80:41]
-  wire [31:0] _GEN_28 = 3'h6 == io_instruction_i[15:13] ? _io_instruction_o_T_126 : _GEN_26; // @[CompressedDecoder.scala 191:28 80:41]
-  wire  _GEN_29 = 3'h4 == io_instruction_i[15:13] ? _GEN_23 : _GEN_27; // @[CompressedDecoder.scala 80:41]
-  wire [31:0] _GEN_30 = 3'h4 == io_instruction_i[15:13] ? _GEN_24 : _GEN_28; // @[CompressedDecoder.scala 80:41]
-  wire  _GEN_31 = 3'h3 == io_instruction_i[15:13] | _GEN_29; // @[CompressedDecoder.scala 117:22 80:41]
-  wire [31:0] _GEN_32 = 3'h3 == io_instruction_i[15:13] ? _GEN_8 : _GEN_30; // @[CompressedDecoder.scala 80:41]
-  wire  _GEN_33 = 3'h2 == io_instruction_i[15:13] | _GEN_31; // @[CompressedDecoder.scala 109:22 80:41]
-  wire [31:0] _GEN_34 = 3'h2 == io_instruction_i[15:13] ? _io_instruction_o_T_63 : _GEN_32; // @[CompressedDecoder.scala 110:28 80:41]
-  wire  _GEN_35 = 3'h5 == io_instruction_i[15:13] | _GEN_33; // @[CompressedDecoder.scala 100:22 80:41]
-  wire [31:0] _GEN_36 = 3'h5 == io_instruction_i[15:13] ? _io_instruction_o_T_42 : _GEN_34; // @[CompressedDecoder.scala 101:28 80:41]
-  wire  _GEN_37 = 3'h1 == io_instruction_i[15:13] | _GEN_35; // @[CompressedDecoder.scala 80:41 92:22]
-  wire [31:0] _GEN_38 = 3'h1 == io_instruction_i[15:13] ? _io_instruction_o_T_42 : _GEN_36; // @[CompressedDecoder.scala 80:41 93:28]
-  wire  _GEN_39 = 3'h0 == io_instruction_i[15:13] | _GEN_37; // @[CompressedDecoder.scala 80:41 85:22]
-  wire [31:0] _GEN_40 = 3'h0 == io_instruction_i[15:13] ? _io_instruction_o_T_28 : _GEN_38; // @[CompressedDecoder.scala 80:41 86:28]
-  wire [31:0] _io_instruction_o_T_143 = {7'h0,io_instruction_i[6:2],io_instruction_i[11:7],3'h1,io_instruction_i[11:7],7'h13
-    }; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_149 = {4'h0,io_instruction_i[3:2],io_instruction_i[12],io_instruction_i[6:4],2'h0,8'h12
-    ,io_instruction_i[11:7],7'h3}; // @[Cat.scala 33:92]
-  wire  _T_37 = io_instruction_i[6:2] != 5'h0; // @[CompressedDecoder.scala 235:40]
-  wire [31:0] _io_instruction_o_T_154 = {7'h0,io_instruction_i[6:2],8'h0,io_instruction_i[11:7],7'h33}; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_158 = {12'h0,io_instruction_i[11:7],15'h67}; // @[Cat.scala 33:92]
-  wire [31:0] _GEN_42 = io_instruction_i[6:2] != 5'h0 ? _io_instruction_o_T_154 : _io_instruction_o_T_158; // @[CompressedDecoder.scala 235:62 240:32 245:32]
-  wire [31:0] _io_instruction_o_T_163 = {7'h0,io_instruction_i[6:2],io_instruction_i[11:7],3'h0,io_instruction_i[11:7],7'h33
-    }; // @[Cat.scala 33:92]
-  wire [31:0] _io_instruction_o_T_167 = {12'h0,io_instruction_i[11:7],7'h0,8'he7}; // @[Cat.scala 33:92]
-  wire [31:0] _GEN_44 = io_instruction_i[11:7] == 5'h0 ? 32'h100073 : _io_instruction_o_T_167; // @[CompressedDecoder.scala 256:65 259:34 263:34]
-  wire [31:0] _GEN_46 = _T_37 ? _io_instruction_o_T_163 : _GEN_44; // @[CompressedDecoder.scala 249:62 253:32]
-  wire [31:0] _GEN_48 = ~io_instruction_i[12] ? _GEN_42 : _GEN_46; // @[CompressedDecoder.scala 233:50]
-  wire [31:0] _io_instruction_o_T_173 = {4'h0,io_instruction_i[8:7],io_instruction_i[12],io_instruction_i[6:2],5'h2,3'h2
-    ,io_instruction_i[11:9],9'h23}; // @[Cat.scala 33:92]
-  wire [31:0] _GEN_50 = _T_5 ? _io_instruction_o_T_173 : io_instruction_i; // @[CompressedDecoder.scala 214:40 272:28 35:20]
-  wire [31:0] _GEN_52 = _T_6 ? _GEN_48 : _GEN_50; // @[CompressedDecoder.scala 214:40]
-  wire  _GEN_53 = _T_4 | (_T_6 | _T_5); // @[CompressedDecoder.scala 214:40 226:22]
-  wire [31:0] _GEN_54 = _T_4 ? _io_instruction_o_T_149 : _GEN_52; // @[CompressedDecoder.scala 214:40 227:28]
-  wire  _GEN_55 = _T_3 | _GEN_53; // @[CompressedDecoder.scala 214:40 219:22]
-  wire [31:0] _GEN_56 = _T_3 ? _io_instruction_o_T_143 : _GEN_54; // @[CompressedDecoder.scala 214:40 220:28]
-  wire [31:0] _GEN_60 = 2'h2 == io_instruction_i[1:0] ? _GEN_56 : io_instruction_i; // @[CompressedDecoder.scala 37:34]
-  wire  _GEN_61 = 2'h1 == io_instruction_i[1:0] ? _GEN_39 : 2'h2 == io_instruction_i[1:0] & _GEN_55; // @[CompressedDecoder.scala 37:34]
-  wire [31:0] _GEN_62 = 2'h1 == io_instruction_i[1:0] ? _GEN_40 : _GEN_60; // @[CompressedDecoder.scala 37:34]
-  wire  _GEN_63 = 2'h0 == io_instruction_i[1:0] ? _GEN_6 : _GEN_61; // @[CompressedDecoder.scala 37:34]
-  wire [31:0] _GEN_64 = 2'h0 == io_instruction_i[1:0] ? _GEN_7 : _GEN_62; // @[CompressedDecoder.scala 37:34]
-  assign io_is_comp = io_instruction_i == 32'h0 ? 1'h0 : _GEN_63; // @[CompressedDecoder.scala 285:47 287:18]
-  assign io_instruction_o = io_instruction_i == 32'h0 ? io_instruction_i : _GEN_64; // @[CompressedDecoder.scala 285:47 288:24]
-endmodule
 module Core(
   input         clock,
   input         reset,
@@ -2335,19 +2117,6 @@ module Core(
   output [31:0] io_imemReq_bits_addrRequest,
   input         io_imemRsp_valid,
   input  [31:0] io_imemRsp_bits_dataResponse,
-  output [31:0] io_rvfiUInt_0,
-  output [31:0] io_rvfiUInt_1,
-  output [31:0] io_rvfiUInt_2,
-  output [31:0] io_rvfiUInt_3,
-  output [31:0] io_rvfiSInt_0,
-  output [31:0] io_rvfiSInt_1,
-  output [31:0] io_rvfiSInt_2,
-  output [31:0] io_rvfiSInt_3,
-  output [31:0] io_rvfiSInt_4,
-  output        io_rvfiBool_0,
-  output [4:0]  io_rvfiRegAddr_0,
-  output [4:0]  io_rvfiRegAddr_1,
-  output [4:0]  io_rvfiRegAddr_2,
   output [31:0] io_fcsr_o_data
 );
 `ifdef RANDOMIZE_REG_INIT
@@ -2389,30 +2158,6 @@ module Core(
   reg [31:0] _RAND_35;
   reg [31:0] _RAND_36;
   reg [31:0] _RAND_37;
-  reg [31:0] _RAND_38;
-  reg [31:0] _RAND_39;
-  reg [31:0] _RAND_40;
-  reg [31:0] _RAND_41;
-  reg [31:0] _RAND_42;
-  reg [31:0] _RAND_43;
-  reg [31:0] _RAND_44;
-  reg [31:0] _RAND_45;
-  reg [31:0] _RAND_46;
-  reg [31:0] _RAND_47;
-  reg [31:0] _RAND_48;
-  reg [31:0] _RAND_49;
-  reg [31:0] _RAND_50;
-  reg [31:0] _RAND_51;
-  reg [31:0] _RAND_52;
-  reg [31:0] _RAND_53;
-  reg [31:0] _RAND_54;
-  reg [31:0] _RAND_55;
-  reg [31:0] _RAND_56;
-  reg [31:0] _RAND_57;
-  reg [31:0] _RAND_58;
-  reg [31:0] _RAND_59;
-  reg [31:0] _RAND_60;
-  reg [31:0] _RAND_61;
 `endif // RANDOMIZE_REG_INIT
   wire  InstructionFetch_reset; // @[Core.scala 87:18]
   wire [31:0] InstructionFetch_io_address; // @[Core.scala 87:18]
@@ -2473,8 +2218,6 @@ module Core(
   wire [31:0] InstructionDecode_io_csr_o_data; // @[Core.scala 88:18]
   wire  InstructionDecode_io_is_csr; // @[Core.scala 88:18]
   wire [31:0] InstructionDecode_io_fscr_o_data; // @[Core.scala 88:18]
-  wire [4:0] InstructionDecode_io_rs_addr_0; // @[Core.scala 88:18]
-  wire [4:0] InstructionDecode_io_rs_addr_1; // @[Core.scala 88:18]
   wire  Execute_clock; // @[Core.scala 89:18]
   wire  Execute_reset; // @[Core.scala 89:18]
   wire [31:0] Execute_io_immediate; // @[Core.scala 89:18]
@@ -2517,18 +2260,6 @@ module Core(
   wire  pc_io_halt; // @[Core.scala 98:18]
   wire [31:0] pc_io_out; // @[Core.scala 98:18]
   wire [31:0] pc_io_pc4; // @[Core.scala 98:18]
-  wire [31:0] pc_io_pc2; // @[Core.scala 98:18]
-  wire  Realigner_clock; // @[Core.scala 115:20]
-  wire  Realigner_reset; // @[Core.scala 115:20]
-  wire [31:0] Realigner_io_ral_address_i; // @[Core.scala 115:20]
-  wire [31:0] Realigner_io_ral_instruction_i; // @[Core.scala 115:20]
-  wire  Realigner_io_ral_jmp; // @[Core.scala 115:20]
-  wire [31:0] Realigner_io_ral_address_o; // @[Core.scala 115:20]
-  wire [31:0] Realigner_io_ral_instruction_o; // @[Core.scala 115:20]
-  wire  Realigner_io_ral_halt_o; // @[Core.scala 115:20]
-  wire [31:0] CompressedDecoder_io_instruction_i; // @[Core.scala 129:20]
-  wire  CompressedDecoder_io_is_comp; // @[Core.scala 129:20]
-  wire [31:0] CompressedDecoder_io_instruction_o; // @[Core.scala 129:20]
   reg [31:0] if_reg_pc; // @[Core.scala 34:26]
   reg [31:0] if_reg_ins; // @[Core.scala 35:27]
   reg [31:0] id_reg_pc; // @[Core.scala 38:26]
@@ -2567,42 +2298,15 @@ module Core(
   reg [31:0] mem_reg_pc; // @[Core.scala 82:27]
   reg  mem_reg_is_csr; // @[Core.scala 83:31]
   reg [31:0] mem_reg_csr_data; // @[Core.scala 84:33]
-  wire [31:0] instruction = CompressedDecoder_io_instruction_o; // @[Core.scala 103:25 132:18]
+  wire [31:0] instruction = InstructionFetch_io_instruction; // @[Core.scala 103:25 142:17]
   wire [2:0] func3 = instruction[14:12]; // @[Core.scala 146:26]
   wire [6:0] _GEN_0 = instruction[6:0] == 7'h33 ? instruction[31:25] : 7'h0; // @[Core.scala 148:42 149:11 151:11]
   wire [5:0] func7 = _GEN_0[5:0]; // @[Core.scala 147:19]
   wire  IF_stall = func7 == 6'h1 & (func3 == 3'h4 | func3 == 3'h5 | func3 == 3'h6 | func3 == 3'h7); // @[Core.scala 154:32]
-  wire  ral_halt_o = Realigner_io_ral_halt_o; // @[Core.scala 104:29 124:26]
-  wire  is_comp = CompressedDecoder_io_is_comp; // @[Core.scala 105:29 134:13]
-  wire [31:0] _npc_T_1 = is_comp ? $signed(pc_io_pc2) : $signed(pc_io_pc4); // @[Core.scala 160:76]
+  wire [31:0] _npc_T_1 = pc_io_pc4; // @[Core.scala 160:76]
   wire [31:0] _npc_T_2 = InstructionDecode_io_pcSrc ? $signed(InstructionDecode_io_pcPlusOffset) : $signed(_npc_T_1); // @[Core.scala 160:36]
   wire [31:0] _wb_data_T_1 = mem_reg_pc + 32'h4; // @[Core.scala 322:28]
   wire [31:0] _GEN_6 = mem_reg_ctl_memToReg == 2'h2 ? _wb_data_T_1 : mem_reg_result; // @[Core.scala 321:44 322:15 326:15]
-  reg [31:0] npcDelay_0; // @[Core.scala 345:23]
-  reg [31:0] npcDelay_1; // @[Core.scala 345:23]
-  reg [31:0] npcDelay_2; // @[Core.scala 345:23]
-  reg [31:0] npcDelay_3; // @[Core.scala 345:23]
-  reg [4:0] rsAddrDelay_0_0; // @[Core.scala 346:53]
-  reg [4:0] rsAddrDelay_0_1; // @[Core.scala 346:53]
-  reg [4:0] rsAddrDelay_0_2; // @[Core.scala 346:53]
-  reg [4:0] rsAddrDelay_1_0; // @[Core.scala 346:53]
-  reg [4:0] rsAddrDelay_1_1; // @[Core.scala 346:53]
-  reg [4:0] rsAddrDelay_1_2; // @[Core.scala 346:53]
-  reg [31:0] rsDataDelay_0_0; // @[Core.scala 347:53]
-  reg [31:0] rsDataDelay_0_1; // @[Core.scala 347:53]
-  reg [31:0] rsDataDelay_1_0; // @[Core.scala 347:53]
-  reg [31:0] rsDataDelay_1_1; // @[Core.scala 347:53]
-  reg [31:0] memAddrDelay; // @[Core.scala 348:31]
-  reg [31:0] memWdataDelay; // @[Core.scala 349:32]
-  reg  stallDelay_0; // @[Core.scala 350:25]
-  reg  stallDelay_1; // @[Core.scala 350:25]
-  reg  stallDelay_2; // @[Core.scala 350:25]
-  reg  stallDelay_3; // @[Core.scala 350:25]
-  reg [31:0] insDelay_0; // @[Core.scala 351:45]
-  reg [31:0] insDelay_1; // @[Core.scala 351:45]
-  reg [31:0] insDelay_2; // @[Core.scala 351:45]
-  reg [31:0] insDelay_3; // @[Core.scala 351:45]
-  wire [31:0] c_ins_trace = InstructionFetch_io_instruction; // @[Core.scala 107:51 136:21]
   InstructionFetch InstructionFetch ( // @[Core.scala 87:18]
     .reset(InstructionFetch_reset),
     .io_address(InstructionFetch_io_address),
@@ -2664,9 +2368,7 @@ module Core(
     .io_stall(InstructionDecode_io_stall),
     .io_csr_o_data(InstructionDecode_io_csr_o_data),
     .io_is_csr(InstructionDecode_io_is_csr),
-    .io_fscr_o_data(InstructionDecode_io_fscr_o_data),
-    .io_rs_addr_0(InstructionDecode_io_rs_addr_0),
-    .io_rs_addr_1(InstructionDecode_io_rs_addr_1)
+    .io_fscr_o_data(InstructionDecode_io_fscr_o_data)
   );
   Execute Execute ( // @[Core.scala 89:18]
     .clock(Execute_clock),
@@ -2714,23 +2416,7 @@ module Core(
     .io_in(pc_io_in),
     .io_halt(pc_io_halt),
     .io_out(pc_io_out),
-    .io_pc4(pc_io_pc4),
-    .io_pc2(pc_io_pc2)
-  );
-  Realigner Realigner ( // @[Core.scala 115:20]
-    .clock(Realigner_clock),
-    .reset(Realigner_reset),
-    .io_ral_address_i(Realigner_io_ral_address_i),
-    .io_ral_instruction_i(Realigner_io_ral_instruction_i),
-    .io_ral_jmp(Realigner_io_ral_jmp),
-    .io_ral_address_o(Realigner_io_ral_address_o),
-    .io_ral_instruction_o(Realigner_io_ral_instruction_o),
-    .io_ral_halt_o(Realigner_io_ral_halt_o)
-  );
-  CompressedDecoder CompressedDecoder ( // @[Core.scala 129:20]
-    .io_instruction_i(CompressedDecoder_io_instruction_i),
-    .io_is_comp(CompressedDecoder_io_is_comp),
-    .io_instruction_o(CompressedDecoder_io_instruction_o)
+    .io_pc4(pc_io_pc4)
   );
   assign io_pin = mem_reg_ctl_memToReg == 2'h1 ? MEM_io_readData : _GEN_6; // @[Core.scala 318:38 319:13]
   assign io_dmemReq_valid = MEM_io_dccmReq_valid; // @[Core.scala 263:14]
@@ -2740,22 +2426,9 @@ module Core(
   assign io_dmemReq_bits_isWrite = MEM_io_dccmReq_bits_isWrite; // @[Core.scala 263:14]
   assign io_imemReq_valid = InstructionFetch_io_coreInstrReq_valid; // @[Core.scala 100:14]
   assign io_imemReq_bits_addrRequest = InstructionFetch_io_coreInstrReq_bits_addrRequest; // @[Core.scala 100:14]
-  assign io_rvfiUInt_0 = mem_reg_pc; // @[Core.scala 398:19]
-  assign io_rvfiUInt_1 = npcDelay_3; // @[Core.scala 398:19]
-  assign io_rvfiUInt_2 = insDelay_3; // @[Core.scala 398:19]
-  assign io_rvfiUInt_3 = memAddrDelay; // @[Core.scala 398:19]
-  assign io_rvfiSInt_0 = mem_reg_ctl_memToReg == 2'h1 ? MEM_io_readData : _GEN_6; // @[Core.scala 392:36]
-  assign io_rvfiSInt_1 = rsDataDelay_0_1; // @[Core.scala 361:30]
-  assign io_rvfiSInt_2 = rsDataDelay_1_1; // @[Core.scala 361:30]
-  assign io_rvfiSInt_3 = MEM_io_readData; // @[Core.scala 393:44]
-  assign io_rvfiSInt_4 = memWdataDelay; // @[Core.scala 398:19]
-  assign io_rvfiBool_0 = stallDelay_3; // @[Core.scala 398:19]
-  assign io_rvfiRegAddr_0 = mem_reg_wra; // @[Core.scala 318:38 320:13]
-  assign io_rvfiRegAddr_1 = rsAddrDelay_0_2; // @[Core.scala 358:33]
-  assign io_rvfiRegAddr_2 = rsAddrDelay_1_2; // @[Core.scala 358:33]
   assign io_fcsr_o_data = InstructionDecode_io_fscr_o_data; // @[Core.scala 92:18]
   assign InstructionFetch_reset = reset;
-  assign InstructionFetch_io_address = Realigner_io_ral_address_o; // @[Core.scala 121:26]
+  assign InstructionFetch_io_address = pc_io_in; // @[Core.scala 141:34]
   assign InstructionFetch_io_stall = Execute_io_stall | InstructionDecode_io_stall | IF_stall; // @[Core.scala 156:48]
   assign InstructionFetch_io_coreInstrResp_valid = io_imemRsp_valid; // @[Core.scala 101:20]
   assign InstructionFetch_io_coreInstrResp_bits_dataResponse = io_imemRsp_bits_dataResponse; // @[Core.scala 101:20]
@@ -2816,13 +2489,7 @@ module Core(
   assign pc_clock = clock;
   assign pc_reset = reset;
   assign pc_io_in = InstructionDecode_io_hdu_pcWrite ? $signed(_npc_T_2) : $signed(pc_io_out); // @[Core.scala 160:16]
-  assign pc_io_halt = Execute_io_stall | InstructionDecode_io_stall | IF_stall | ~io_imemReq_valid | ral_halt_o; // @[Core.scala 159:78]
-  assign Realigner_clock = clock;
-  assign Realigner_reset = reset;
-  assign Realigner_io_ral_address_i = pc_io_in; // @[Core.scala 117:44]
-  assign Realigner_io_ral_instruction_i = InstructionFetch_io_instruction; // @[Core.scala 118:26]
-  assign Realigner_io_ral_jmp = InstructionDecode_io_pcSrc; // @[Core.scala 119:26]
-  assign CompressedDecoder_io_instruction_i = Realigner_io_ral_instruction_o; // @[Core.scala 131:22]
+  assign pc_io_halt = Execute_io_stall | InstructionDecode_io_stall | IF_stall | ~io_imemReq_valid; // @[Core.scala 159:56]
   always @(posedge clock) begin
     if (reset) begin // @[Core.scala 34:26]
       if_reg_pc <= 32'h0; // @[Core.scala 34:26]
@@ -3016,38 +2683,6 @@ module Core(
     end else begin
       mem_reg_csr_data <= ex_reg_csr_data; // @[Core.scala 300:20]
     end
-    npcDelay_0 <= InstructionDecode_io_hdu_pcWrite ? $signed(_npc_T_2) : $signed(pc_io_out); // @[Core.scala 376:25]
-    npcDelay_1 <= npcDelay_0; // @[Core.scala 364:23]
-    npcDelay_2 <= npcDelay_1; // @[Core.scala 364:23]
-    npcDelay_3 <= npcDelay_2; // @[Core.scala 364:23]
-    rsAddrDelay_0_0 <= InstructionDecode_io_rs_addr_0; // @[Core.scala 357:25]
-    rsAddrDelay_0_1 <= rsAddrDelay_0_0; // @[Core.scala 355:31]
-    rsAddrDelay_0_2 <= rsAddrDelay_0_1; // @[Core.scala 355:31]
-    rsAddrDelay_1_0 <= InstructionDecode_io_rs_addr_1; // @[Core.scala 357:25]
-    rsAddrDelay_1_1 <= rsAddrDelay_1_0; // @[Core.scala 355:31]
-    rsAddrDelay_1_2 <= rsAddrDelay_1_1; // @[Core.scala 355:31]
-    rsDataDelay_0_0 <= id_reg_rd1; // @[Core.scala 378:38]
-    rsDataDelay_0_1 <= rsDataDelay_0_0; // @[Core.scala 360:25]
-    rsDataDelay_1_0 <= id_reg_rd2; // @[Core.scala 379:38]
-    rsDataDelay_1_1 <= rsDataDelay_1_0; // @[Core.scala 360:25]
-    if (reset) begin // @[Core.scala 348:31]
-      memAddrDelay <= 32'h0; // @[Core.scala 348:31]
-    end else begin
-      memAddrDelay <= ex_reg_result; // @[Core.scala 398:19]
-    end
-    if (reset) begin // @[Core.scala 349:32]
-      memWdataDelay <= 32'sh0; // @[Core.scala 349:32]
-    end else begin
-      memWdataDelay <= ex_reg_wd; // @[Core.scala 398:19]
-    end
-    stallDelay_0 <= InstructionDecode_io_hdu_if_reg_write; // @[Core.scala 398:19]
-    stallDelay_1 <= stallDelay_0; // @[Core.scala 365:25]
-    stallDelay_2 <= stallDelay_1; // @[Core.scala 365:25]
-    stallDelay_3 <= stallDelay_2; // @[Core.scala 365:25]
-    insDelay_0 <= c_ins_trace; // @[Core.scala 371:23]
-    insDelay_1 <= insDelay_0; // @[Core.scala 369:29]
-    insDelay_2 <= insDelay_1; // @[Core.scala 369:29]
-    insDelay_3 <= insDelay_2; // @[Core.scala 369:29]
   end
 // Register and memory initialization
 `ifdef RANDOMIZE_GARBAGE_ASSIGN
@@ -3161,54 +2796,6 @@ initial begin
   mem_reg_is_csr = _RAND_36[0:0];
   _RAND_37 = {1{`RANDOM}};
   mem_reg_csr_data = _RAND_37[31:0];
-  _RAND_38 = {1{`RANDOM}};
-  npcDelay_0 = _RAND_38[31:0];
-  _RAND_39 = {1{`RANDOM}};
-  npcDelay_1 = _RAND_39[31:0];
-  _RAND_40 = {1{`RANDOM}};
-  npcDelay_2 = _RAND_40[31:0];
-  _RAND_41 = {1{`RANDOM}};
-  npcDelay_3 = _RAND_41[31:0];
-  _RAND_42 = {1{`RANDOM}};
-  rsAddrDelay_0_0 = _RAND_42[4:0];
-  _RAND_43 = {1{`RANDOM}};
-  rsAddrDelay_0_1 = _RAND_43[4:0];
-  _RAND_44 = {1{`RANDOM}};
-  rsAddrDelay_0_2 = _RAND_44[4:0];
-  _RAND_45 = {1{`RANDOM}};
-  rsAddrDelay_1_0 = _RAND_45[4:0];
-  _RAND_46 = {1{`RANDOM}};
-  rsAddrDelay_1_1 = _RAND_46[4:0];
-  _RAND_47 = {1{`RANDOM}};
-  rsAddrDelay_1_2 = _RAND_47[4:0];
-  _RAND_48 = {1{`RANDOM}};
-  rsDataDelay_0_0 = _RAND_48[31:0];
-  _RAND_49 = {1{`RANDOM}};
-  rsDataDelay_0_1 = _RAND_49[31:0];
-  _RAND_50 = {1{`RANDOM}};
-  rsDataDelay_1_0 = _RAND_50[31:0];
-  _RAND_51 = {1{`RANDOM}};
-  rsDataDelay_1_1 = _RAND_51[31:0];
-  _RAND_52 = {1{`RANDOM}};
-  memAddrDelay = _RAND_52[31:0];
-  _RAND_53 = {1{`RANDOM}};
-  memWdataDelay = _RAND_53[31:0];
-  _RAND_54 = {1{`RANDOM}};
-  stallDelay_0 = _RAND_54[0:0];
-  _RAND_55 = {1{`RANDOM}};
-  stallDelay_1 = _RAND_55[0:0];
-  _RAND_56 = {1{`RANDOM}};
-  stallDelay_2 = _RAND_56[0:0];
-  _RAND_57 = {1{`RANDOM}};
-  stallDelay_3 = _RAND_57[0:0];
-  _RAND_58 = {1{`RANDOM}};
-  insDelay_0 = _RAND_58[31:0];
-  _RAND_59 = {1{`RANDOM}};
-  insDelay_1 = _RAND_59[31:0];
-  _RAND_60 = {1{`RANDOM}};
-  insDelay_2 = _RAND_60[31:0];
-  _RAND_61 = {1{`RANDOM}};
-  insDelay_3 = _RAND_61[31:0];
 `endif // RANDOMIZE_REG_INIT
   `endif // RANDOMIZE
 end // initial
@@ -3243,7 +2830,9 @@ module SRamTop(
   wire  _T_2 = io_req_valid & io_req_bits_isWrite; // @[SRamTop.scala 49:34]
   wire  _GEN_0 = io_req_valid & io_req_bits_isWrite ? 1'h0 : 1'h1; // @[SRamTop.scala 29:19 49:58 54:27]
   wire  _GEN_6 = io_req_valid & ~io_req_bits_isWrite | _T_2; // @[SRamTop.scala 40:52 43:22]
-  sram_top #(.IFILE_IN("data.hex")) sram ( // @[SRamTop.scala 21:22]
+  sram_top
+    #(.IFILE_IN("/home/hassan/nucleusrv/riscof_work/rv32i_m/privilege/src/misalign2-jalr-01.S/dut/DUT-nucleusrv.data.hex"))
+    sram ( // @[SRamTop.scala 21:22]
     .clk_i(sram_clk_i),
     .rst_i(sram_rst_i),
     .csb_i(sram_csb_i),
@@ -3335,7 +2924,9 @@ module SRamTop_1(
   wire [31:0] sram_wdata_i; // @[SRamTop.scala 21:22]
   wire [31:0] sram_rdata_o; // @[SRamTop.scala 21:22]
   reg  validReg; // @[SRamTop.scala 14:27]
-  sram_top #(.IFILE_IN("/home/hassan/Downloads/nucleusrv/riscof_work/rv32i_m/I/src/add-01.S/dut/nucleusrv.hex")) sram ( // @[SRamTop.scala 21:22]
+  sram_top
+    #(.IFILE_IN("/home/hassan/nucleusrv/riscof_work/rv32i_m/privilege/src/misalign2-jalr-01.S/dut/DUT-nucleusrv.program.hex"))
+    sram ( // @[SRamTop.scala 21:22]
     .clk_i(sram_clk_i),
     .rst_i(sram_rst_i),
     .csb_i(sram_csb_i),
@@ -3407,96 +2998,6 @@ end // initial
 `endif
 `endif // SYNTHESIS
 endmodule
-module Tracer(
-  input         clock,
-  input         reset,
-  input  [31:0] io_rvfiUInt_0,
-  input  [31:0] io_rvfiUInt_1,
-  input  [31:0] io_rvfiUInt_2,
-  input  [31:0] io_rvfiUInt_3,
-  input  [31:0] io_rvfiSInt_0,
-  input  [31:0] io_rvfiSInt_1,
-  input  [31:0] io_rvfiSInt_2,
-  input  [31:0] io_rvfiSInt_3,
-  input  [31:0] io_rvfiSInt_4,
-  input         io_rvfiBool_0,
-  input  [4:0]  io_rvfiRegAddr_0,
-  input  [4:0]  io_rvfiRegAddr_1,
-  input  [4:0]  io_rvfiRegAddr_2
-);
-`ifdef RANDOMIZE_REG_INIT
-  reg [31:0] _RAND_0;
-`endif // RANDOMIZE_REG_INIT
-  reg [31:0] clkCycle; // @[Tracer.scala 18:31]
-  wire [31:0] _clkCycle_T_1 = clkCycle + 32'h1; // @[Tracer.scala 19:24]
-  wire  _T_1 = io_rvfiBool_0 & io_rvfiUInt_2 != 32'h0; // @[Tracer.scala 44:28]
-  always @(posedge clock) begin
-    if (reset) begin // @[Tracer.scala 18:31]
-      clkCycle <= 32'h0; // @[Tracer.scala 18:31]
-    end else begin
-      clkCycle <= _clkCycle_T_1; // @[Tracer.scala 19:12]
-    end
-    `ifndef SYNTHESIS
-    `ifdef PRINTF_COND
-      if (`PRINTF_COND) begin
-    `endif
-        if (_T_1 & ~reset) begin
-          $fwrite(32'h80000002,
-            "ClkCycle: %d, pc_rdata: %x, pc_wdata: %x, insn: %x, mode: %d, rs1_addr: %d, rs1_rdata: %x, rs2_addr: %d, rs2_rdata: %x, rd_addr: %d, rd_wdata: %x, mem_addr: %x, mem_rdata: %x, mem_wdata: %x\n"
-            ,clkCycle,io_rvfiUInt_0,io_rvfiUInt_1,io_rvfiUInt_2,2'h3,io_rvfiRegAddr_1,io_rvfiSInt_1,io_rvfiRegAddr_2,
-            io_rvfiSInt_2,io_rvfiRegAddr_0,io_rvfiSInt_0,io_rvfiUInt_3,io_rvfiSInt_3,io_rvfiSInt_4); // @[Tracer.scala 45:11]
-        end
-    `ifdef PRINTF_COND
-      end
-    `endif
-    `endif // SYNTHESIS
-  end
-// Register and memory initialization
-`ifdef RANDOMIZE_GARBAGE_ASSIGN
-`define RANDOMIZE
-`endif
-`ifdef RANDOMIZE_INVALID_ASSIGN
-`define RANDOMIZE
-`endif
-`ifdef RANDOMIZE_REG_INIT
-`define RANDOMIZE
-`endif
-`ifdef RANDOMIZE_MEM_INIT
-`define RANDOMIZE
-`endif
-`ifndef RANDOM
-`define RANDOM $random
-`endif
-`ifdef RANDOMIZE_MEM_INIT
-  integer initvar;
-`endif
-`ifndef SYNTHESIS
-`ifdef FIRRTL_BEFORE_INITIAL
-`FIRRTL_BEFORE_INITIAL
-`endif
-initial begin
-  `ifdef RANDOMIZE
-    `ifdef INIT_RANDOM
-      `INIT_RANDOM
-    `endif
-    `ifndef VERILATOR
-      `ifdef RANDOMIZE_DELAY
-        #`RANDOMIZE_DELAY begin end
-      `else
-        #0.002 begin end
-      `endif
-    `endif
-`ifdef RANDOMIZE_REG_INIT
-  _RAND_0 = {1{`RANDOM}};
-  clkCycle = _RAND_0[31:0];
-`endif // RANDOMIZE_REG_INIT
-  `endif // RANDOMIZE
-end // initial
-`ifdef FIRRTL_AFTER_INITIAL
-`FIRRTL_AFTER_INITIAL
-`endif
-`endif // SYNTHESIS
-endmodule
 module Top(
   input         clock,
   input         reset,
@@ -3517,19 +3018,6 @@ module Top(
   wire [31:0] core_io_imemReq_bits_addrRequest; // @[Top.scala 16:26]
   wire  core_io_imemRsp_valid; // @[Top.scala 16:26]
   wire [31:0] core_io_imemRsp_bits_dataResponse; // @[Top.scala 16:26]
-  wire [31:0] core_io_rvfiUInt_0; // @[Top.scala 16:26]
-  wire [31:0] core_io_rvfiUInt_1; // @[Top.scala 16:26]
-  wire [31:0] core_io_rvfiUInt_2; // @[Top.scala 16:26]
-  wire [31:0] core_io_rvfiUInt_3; // @[Top.scala 16:26]
-  wire [31:0] core_io_rvfiSInt_0; // @[Top.scala 16:26]
-  wire [31:0] core_io_rvfiSInt_1; // @[Top.scala 16:26]
-  wire [31:0] core_io_rvfiSInt_2; // @[Top.scala 16:26]
-  wire [31:0] core_io_rvfiSInt_3; // @[Top.scala 16:26]
-  wire [31:0] core_io_rvfiSInt_4; // @[Top.scala 16:26]
-  wire  core_io_rvfiBool_0; // @[Top.scala 16:26]
-  wire [4:0] core_io_rvfiRegAddr_0; // @[Top.scala 16:26]
-  wire [4:0] core_io_rvfiRegAddr_1; // @[Top.scala 16:26]
-  wire [4:0] core_io_rvfiRegAddr_2; // @[Top.scala 16:26]
   wire [31:0] core_io_fcsr_o_data; // @[Top.scala 16:26]
   wire  dmem_clock; // @[Top.scala 19:20]
   wire  dmem_reset; // @[Top.scala 19:20]
@@ -3546,21 +3034,6 @@ module Top(
   wire [31:0] imem_io_req_bits_addrRequest; // @[Top.scala 20:20]
   wire  imem_io_rsp_valid; // @[Top.scala 20:20]
   wire [31:0] imem_io_rsp_bits_dataResponse; // @[Top.scala 20:20]
-  wire  tracer_clock; // @[Top.scala 35:24]
-  wire  tracer_reset; // @[Top.scala 35:24]
-  wire [31:0] tracer_io_rvfiUInt_0; // @[Top.scala 35:24]
-  wire [31:0] tracer_io_rvfiUInt_1; // @[Top.scala 35:24]
-  wire [31:0] tracer_io_rvfiUInt_2; // @[Top.scala 35:24]
-  wire [31:0] tracer_io_rvfiUInt_3; // @[Top.scala 35:24]
-  wire [31:0] tracer_io_rvfiSInt_0; // @[Top.scala 35:24]
-  wire [31:0] tracer_io_rvfiSInt_1; // @[Top.scala 35:24]
-  wire [31:0] tracer_io_rvfiSInt_2; // @[Top.scala 35:24]
-  wire [31:0] tracer_io_rvfiSInt_3; // @[Top.scala 35:24]
-  wire [31:0] tracer_io_rvfiSInt_4; // @[Top.scala 35:24]
-  wire  tracer_io_rvfiBool_0; // @[Top.scala 35:24]
-  wire [4:0] tracer_io_rvfiRegAddr_0; // @[Top.scala 35:24]
-  wire [4:0] tracer_io_rvfiRegAddr_1; // @[Top.scala 35:24]
-  wire [4:0] tracer_io_rvfiRegAddr_2; // @[Top.scala 35:24]
   Core core ( // @[Top.scala 16:26]
     .clock(core_clock),
     .reset(core_reset),
@@ -3576,19 +3049,6 @@ module Top(
     .io_imemReq_bits_addrRequest(core_io_imemReq_bits_addrRequest),
     .io_imemRsp_valid(core_io_imemRsp_valid),
     .io_imemRsp_bits_dataResponse(core_io_imemRsp_bits_dataResponse),
-    .io_rvfiUInt_0(core_io_rvfiUInt_0),
-    .io_rvfiUInt_1(core_io_rvfiUInt_1),
-    .io_rvfiUInt_2(core_io_rvfiUInt_2),
-    .io_rvfiUInt_3(core_io_rvfiUInt_3),
-    .io_rvfiSInt_0(core_io_rvfiSInt_0),
-    .io_rvfiSInt_1(core_io_rvfiSInt_1),
-    .io_rvfiSInt_2(core_io_rvfiSInt_2),
-    .io_rvfiSInt_3(core_io_rvfiSInt_3),
-    .io_rvfiSInt_4(core_io_rvfiSInt_4),
-    .io_rvfiBool_0(core_io_rvfiBool_0),
-    .io_rvfiRegAddr_0(core_io_rvfiRegAddr_0),
-    .io_rvfiRegAddr_1(core_io_rvfiRegAddr_1),
-    .io_rvfiRegAddr_2(core_io_rvfiRegAddr_2),
     .io_fcsr_o_data(core_io_fcsr_o_data)
   );
   SRamTop dmem ( // @[Top.scala 19:20]
@@ -3610,23 +3070,6 @@ module Top(
     .io_rsp_valid(imem_io_rsp_valid),
     .io_rsp_bits_dataResponse(imem_io_rsp_bits_dataResponse)
   );
-  Tracer tracer ( // @[Top.scala 35:24]
-    .clock(tracer_clock),
-    .reset(tracer_reset),
-    .io_rvfiUInt_0(tracer_io_rvfiUInt_0),
-    .io_rvfiUInt_1(tracer_io_rvfiUInt_1),
-    .io_rvfiUInt_2(tracer_io_rvfiUInt_2),
-    .io_rvfiUInt_3(tracer_io_rvfiUInt_3),
-    .io_rvfiSInt_0(tracer_io_rvfiSInt_0),
-    .io_rvfiSInt_1(tracer_io_rvfiSInt_1),
-    .io_rvfiSInt_2(tracer_io_rvfiSInt_2),
-    .io_rvfiSInt_3(tracer_io_rvfiSInt_3),
-    .io_rvfiSInt_4(tracer_io_rvfiSInt_4),
-    .io_rvfiBool_0(tracer_io_rvfiBool_0),
-    .io_rvfiRegAddr_0(tracer_io_rvfiRegAddr_0),
-    .io_rvfiRegAddr_1(tracer_io_rvfiRegAddr_1),
-    .io_rvfiRegAddr_2(tracer_io_rvfiRegAddr_2)
-  );
   assign io_pin = core_io_pin; // @[Top.scala 31:10]
   assign io_fcsr = core_io_fcsr_o_data; // @[Top.scala 32:11]
   assign core_clock = clock;
@@ -3646,19 +3089,4 @@ module Top(
   assign imem_reset = reset;
   assign imem_io_req_valid = core_io_imemReq_valid; // @[Top.scala 24:15]
   assign imem_io_req_bits_addrRequest = core_io_imemReq_bits_addrRequest; // @[Top.scala 24:15]
-  assign tracer_clock = clock;
-  assign tracer_reset = reset;
-  assign tracer_io_rvfiUInt_0 = core_io_rvfiUInt_0; // @[Top.scala 43:19]
-  assign tracer_io_rvfiUInt_1 = core_io_rvfiUInt_1; // @[Top.scala 43:19]
-  assign tracer_io_rvfiUInt_2 = core_io_rvfiUInt_2; // @[Top.scala 43:19]
-  assign tracer_io_rvfiUInt_3 = core_io_rvfiUInt_3; // @[Top.scala 43:19]
-  assign tracer_io_rvfiSInt_0 = core_io_rvfiSInt_0; // @[Top.scala 43:19]
-  assign tracer_io_rvfiSInt_1 = core_io_rvfiSInt_1; // @[Top.scala 43:19]
-  assign tracer_io_rvfiSInt_2 = core_io_rvfiSInt_2; // @[Top.scala 43:19]
-  assign tracer_io_rvfiSInt_3 = core_io_rvfiSInt_3; // @[Top.scala 43:19]
-  assign tracer_io_rvfiSInt_4 = core_io_rvfiSInt_4; // @[Top.scala 43:19]
-  assign tracer_io_rvfiBool_0 = core_io_rvfiBool_0; // @[Top.scala 43:19]
-  assign tracer_io_rvfiRegAddr_0 = core_io_rvfiRegAddr_0; // @[Top.scala 43:19]
-  assign tracer_io_rvfiRegAddr_1 = core_io_rvfiRegAddr_1; // @[Top.scala 43:19]
-  assign tracer_io_rvfiRegAddr_2 = core_io_rvfiRegAddr_2; // @[Top.scala 43:19]
 endmodule
