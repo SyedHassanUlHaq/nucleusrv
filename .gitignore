@@ -358,3 +358,4 @@ hs_err_pid*
 
 .venv
 compliance/
+riscof_work/

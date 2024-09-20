@@ -1,0 +1,102 @@
+hart_ids: [0]
+hart0:
+  ISA: RV32IMCZicsr_Zifencei
+  physical_addr_sz: 32
+  User_Spec_Version: '2.3'
+  supported_xlen: [32]
+  misa:
+   reset-val: 0x1104
+   rv32:
+     accessible: true
+    #  mxl:
+    #    implemented: true
+    #    type:
+    #        warl:
+    #           dependency_fields: []
+    #           legal:
+    #             - mxl[1:0] in [0x1]
+    #           wr_illegal:
+    #             - Unchanged
+   rv64:
+     accessible: false
+     
+  
+  mcause:
+   reset-val: 0x0
+   rv32:
+     accessible: true
+     interrupt:
+       implemented: true
+     exception_code:
+       implemented: true
+   rv64:
+     accessible: false
+  mtvec:
+   reset-val: 0x0
+   rv32:
+     accessible: true
+     base:
+       implemented: true
+       
+     mode:
+       implemented: true
+   rv64:
+     accessible: false
+  mepc:
+   reset-val: 0x0
+   rv32:
+     accessible: true
+   rv64:
+     accessible: false
+  mie:
+   reset-val: 0x0
+   rv32:
+     accessible: true
+     msie:
+      implemented: true
+      type:
+        ro_variable: true
+   rv64:
+     accessible: false
+  mscratch:
+    rv32:
+      accessible: true
+    rv64:
+      accessible: false
+    reset-val: 0x0
+  mip:
+   reset-val: 0
+   rv32:
+     accessible: true
+     usip:
+      implemented: false
+     ssip:
+      implemented: false
+     msip:
+      implemented: true
+      type:
+        ro_variable: true
+     utip:
+      implemented: false
+     stip:
+      implemented: false
+     mtip:
+      implemented: true
+      type:
+        ro_variable: [0x01]
+     ueip:
+      implemented: false
+     seip:
+      implemented: false
+     meip:
+      implemented: true
+      type:
+        ro_variable: true
+   rv64:
+     accessible: false
+  mtval:
+   reset-val: 0x0
+   rv32:
+     accessible: true
+   rv64:
+     accessible: false
