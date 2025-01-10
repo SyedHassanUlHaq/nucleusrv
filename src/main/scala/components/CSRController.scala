@@ -90,14 +90,24 @@ class CSRController extends Module{
                            true.B,
                            false.B)
 
-    val cases = Array(
-        hazard_DecEx        -> 1.U,
-        hazard_DecMem       -> 2.U,
-        hazard_DecWb        -> 3.U,
-        csrHazard_DecEx     -> 4.U,
-        csrHazard_DecMem    -> 5.U,
-        csrHazard_DecWb     -> 6.U
+    io.forwardRS1 := Mux(
+        hazard_DecEx, 1.U,
+        Mux(
+            hazard_DecMem, 2.U,
+            Mux(
+                hazard_DecWb, 3.U,
+                Mux(
+                    csrHazard_DecEx, 4.U,
+                    Mux(
+                        csrHazard_DecMem, 5.U,
+                        Mux(
+                            csrHazard_DecWb, 6.U,
+                            DontCare // Default case
+          )
+        )
+      )
     )
+  )
+)
 
-    io.forwardRS1 := MuxLookup(true.B, DontCare, cases)
 }

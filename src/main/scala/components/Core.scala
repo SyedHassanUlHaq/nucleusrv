@@ -114,7 +114,7 @@ class Core(implicit val config:Configs) extends Module{
     ******************/
     val RA = Module(new Realigner).io
 
-    RA.ral_address_i     := pc.io.in.asUInt()
+    RA.ral_address_i     := pc.io.in.asUInt
     RA.ral_instruction_i := IF.instruction
     RA.ral_jmp           := ID.pcSrc
 
@@ -138,7 +138,7 @@ class Core(implicit val config:Configs) extends Module{
   }
   else {
 
-    IF.address := pc.io.in.asUInt()
+    IF.address := pc.io.in
     instruction := IF.instruction
 
   }
@@ -157,11 +157,15 @@ class Core(implicit val config:Configs) extends Module{
   
   // pc.io.halt := Mux(io.imemReq.valid || ~EX.stall || ~ID.stall, 0.B, 1.B)
   pc.io.halt := Mux(((EX.stall || ID.stall || IF_stall || ~io.imemReq.valid) | ral_halt_o), 1.B, 0.B)
-  val npc = Mux(ID.hdu_pcWrite, Mux(ID.pcSrc, ID.pcPlusOffset.asSInt(), Mux(is_comp, pc.io.pc2, pc.io.pc4)), pc.io.out)
+  val npc = Mux(ID.hdu_pcWrite,
+              Mux(ID.pcSrc,
+                  ID.pcPlusOffset.asSInt,
+                  Mux(is_comp, pc.io.pc2, pc.io.pc4)),
+              pc.io.out)
   pc.io.in := npc
 
   when(ID.hdu_if_reg_write) {
-    if_reg_pc := pc.io.out.asUInt()
+    if_reg_pc := pc.io.out.asUInt
     if_reg_ins := instruction 
   }
   when(ID.ifid_flush) {
@@ -245,7 +249,7 @@ class Core(implicit val config:Configs) extends Module{
   EX.ex_mem_ins := ex_reg_ins
   EX.mem_wb_ins := mem_reg_ins
   ID.id_ex_rd := id_reg_ins(11, 7)
-  ID.id_ex_branch := Mux(id_reg_ins(6,0) === "b1100011".asUInt(), true.B, false.B )
+  ID.id_ex_branch := Mux(id_reg_ins(6,0) === "b1100011".U, true.B, false.B )
   ID.ex_mem_rd := ex_reg_ins(11, 7)
   ID.ex_result := EX.ALUresult
   ID.csr_Ex := id_reg_is_csr

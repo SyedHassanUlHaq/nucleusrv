@@ -20,11 +20,11 @@ class SRamTop(val programFile:Option[String] ) extends Module {
     // the memory
     val sram = Module(new sram_top(programFile))
 
-    val clk = WireInit(clock.asUInt()(0))
+    val clk = WireInit(clock)
     val rst = Wire(Bool())
-    rst := reset.asBool()
+    rst := reset
 
-    sram.io.clk_i := clk
+    sram.io.clk_i := clk.asBool
     sram.io.rst_i := rst
     sram.io.csb_i := 1.B
     sram.io.we_i := DontCare

@@ -14,7 +14,7 @@ class InstructionFetch extends Module {
   })
 
   val rst = Wire(Bool())
-  rst := reset.asBool()
+  rst := reset
   io.coreInstrResp.ready := true.B
 
 //  io.coreInstrReq.ready := Mux(rst, false.B, true.B)

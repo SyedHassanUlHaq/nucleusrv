@@ -91,7 +91,7 @@ class MemoryFetch extends Module {
     io.dccmReq.bits.activeByteLane := "b1111".U
   }
 
-  io.dccmReq.bits.dataRequest := wdata.asUInt()
+  io.dccmReq.bits.dataRequest := Cat(wdata(3), wdata(2), wdata(1), wdata(0))
   io.dccmReq.bits.addrRequest := (io.aluResultIn & "h00001fff".U) >> 2
   io.dccmReq.bits.isWrite := io.writeEnable
   io.dccmReq.valid := Mux(io.writeEnable | io.readEnable, true.B, false.B)
@@ -185,7 +185,7 @@ class MemoryFetch extends Module {
   }
 
 
-  when(io.writeEnable && io.aluResultIn(31, 28) === "h8".asUInt()){
+  when(io.writeEnable && io.aluResultIn(31, 28) === "h8".U){
     printf("%x\n", io.writeData)
   }
 

@@ -241,16 +241,26 @@ class InstructionDecode(TRACE:Boolean) extends Module {
 
   io.stall := io.func7 === 1.U && (io.func3 === 4.U || io.func3 === 5.U || io.func3 === 6.U || io.func3 === 7.U)
 
-  val csr_iData_cases = Array(
-    1.U -> io.ex_result,
-    2.U -> Mux(io.ex_mem_mem_read, io.dmem_data, io.ex_mem_result),
-    3.U -> io.writeData,
-    4.U -> io.csr_Ex_data,
-    5.U -> io.csr_Mem_data,
-    6.U -> io.csr_Wb_data
+  csr.io.i_data := Mux(
+    csrController.io.forwardRS1 === 1.U, io.ex_result,
+    Mux(
+      csrController.io.forwardRS1 === 2.U, 
+      Mux(io.ex_mem_mem_read, io.dmem_data, io.ex_mem_result),
+      Mux(
+        csrController.io.forwardRS1 === 3.U, io.writeData,
+        Mux(
+          csrController.io.forwardRS1 === 4.U, io.csr_Ex_data,
+          Mux(
+            csrController.io.forwardRS1 === 5.U, io.csr_Mem_data,
+            Mux(
+              csrController.io.forwardRS1 === 6.U, io.csr_Wb_data,
+              registers.io.readData(1) // Default case
+            )
+          )
+        )
+      )
+    )
   )
-
-  csr.io.i_data := MuxLookup(csrController.io.forwardRS1, registers.io.readData(1), csr_iData_cases)
 
   // RVFI
   if (TRACE) {

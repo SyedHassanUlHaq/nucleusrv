@@ -1,7 +1,9 @@
 package nucleusrv.components
 import chisel3._
-import chisel3.stage.ChiselStage
+import _root_.circt.stage.ChiselStage
 import nucleusrv.tracer._
+import _root_.circt.stage._
+// import circt.stage.TargetDirAnnotation
 
 
 class Top(programFile:Option[String], dataFile:Option[String]) extends Module{
@@ -47,9 +49,19 @@ class Top(programFile:Option[String], dataFile:Option[String]) extends Module{
 }
 
 object NRVDriver {
-  // generate verilog
+  // Generate Verilog/SystemVerilog
   def main(args: Array[String]): Unit = {
-      val IMem =  if (args.length > 0) args(0) else "program.hex"
-      new ChiselStage().emitVerilog(new Top(Some(IMem), Some("data.hex")))
+    val IMem = if (args.nonEmpty) args(0) else "program.hex"
+
+    // Choose Verilog or SystemVerilog by modifying the --target option
+    (new ChiselStage).execute(
+      Array(
+        "--target", "verilog",  // Change to "verilog" for Verilog output
+        "--target-dir", "generated"  // Directory for generated files
+      ),
+      Seq(
+        chisel3.stage.ChiselGeneratorAnnotation(() => new Top(Some(IMem), Some("data.hex")))
+      )
+    )
   }
 }

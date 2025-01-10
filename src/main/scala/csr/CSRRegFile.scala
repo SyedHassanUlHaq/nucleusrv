@@ -68,20 +68,37 @@ class CSRRegFile extends Module{
     var READ,WRITE,SET,CLEAR = Wire(UInt(2.W))
     Seq(READ,WRITE,SET,CLEAR) zip Seq(csr_opr.READ, csr_opr.WRITE, csr_opr.SET, csr_opr.CLEAR) map (x => x._1 := x._2)
 
-    val READ_CASES = Array(
-        AddressMap.MISA    -> MISA_REG,
-        AddressMap.MHARTID -> MHARTID_REG,
-        AddressMap.MSTATUS -> MSTATUS_WIRE,
-        AddressMap.MCAUSE  -> MCAUSE_REG,
-        AddressMap.MTVEC   -> MTVEC_REG,
-        AddressMap.MEPC    -> MEPC_REG,
-        AddressMap.MIE     -> MIE_REG,
-        AddressMap.FFLAGS  -> FFLAGS_WIRE,
-        AddressMap.FRM     -> FRM_WIRE,
-        AddressMap.FCSR    -> FCSR_WIRE
+    r_data := Mux(
+      io.CSR.i_addr === AddressMap.MISA, MISA_REG,
+      Mux(
+        io.CSR.i_addr === AddressMap.MHARTID, MHARTID_REG,
+        Mux(
+          io.CSR.i_addr === AddressMap.MSTATUS, MSTATUS_WIRE,
+          Mux(
+            io.CSR.i_addr === AddressMap.MCAUSE, MCAUSE_REG,
+            Mux(
+              io.CSR.i_addr === AddressMap.MTVEC, MTVEC_REG,
+              Mux(
+                io.CSR.i_addr === AddressMap.MEPC, MEPC_REG,
+                Mux(
+                  io.CSR.i_addr === AddressMap.MIE, MIE_REG,
+                  Mux(
+                    io.CSR.i_addr === AddressMap.FFLAGS, FFLAGS_WIRE,
+                    Mux(
+                      io.CSR.i_addr === AddressMap.FRM, FRM_WIRE,
+                      Mux(
+                        io.CSR.i_addr === AddressMap.FCSR, FCSR_WIRE,
+                        0.U
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
     )
-
-    r_data := MuxLookup(io.CSR.i_addr, DontCare, READ_CASES)
 
     io.CSR.o_data := r_data
     /*************************************************/
@@ -91,11 +108,17 @@ class CSRRegFile extends Module{
     val clear_data = r_data & ~io.CSR.i_data
 
     // Identify the operation
-    w_data := MuxLookup(io.CSR.i_opr, DontCare, Array(
-        WRITE -> io.CSR.i_data,
-        SET   -> set_data,
-        CLEAR -> clear_data
-    ))
+    w_data := Mux(
+      io.CSR.i_opr === WRITE, io.CSR.i_data,
+      Mux(
+        io.CSR.i_opr === SET, set_data,
+        Mux(
+          io.CSR.i_opr === CLEAR, clear_data,
+          DontCare // Default case
+        )
+      )
+    )
+
 
     // Write to the register
     when(io.CSR.i_w_en){
